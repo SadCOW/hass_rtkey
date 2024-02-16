@@ -13,17 +13,20 @@ from . import DOMAIN, RTKeyCamerasApi
 async def async_setup_entry(hass, config_entry, async_add_entities):
     cameras_api = hass.data[config_entry.entry_id]["cameras_api"]
     intercoms_info = await cameras_api.get_intercoms_info()
-    entities = []
-    for intercom_info in intercoms_info["data"]["devices"]:
-        camera_id = intercom_info.get("camera_id")
-        camera_info = (
-            await cameras_api.get_camera_info(camera_id) if camera_id else None
-        )
-        entities.append(
-            RTKeySwitchEntity(
-                hass, config_entry, cameras_api, intercom_info, camera_info
-            )
-        )
+    entities = [
+        RTKeySwitchEntity(hass, config_entry, cameras_api, intercom_info)
+        for intercom_info in intercom_info["data"]["items"]
+    ]
+    # for intercom_info in intercoms_info["data"]["devices"]:
+    #     camera_id = intercom_info.get("camera_id")
+    #     camera_info = (
+    #         await cameras_api.get_camera_info(camera_id) if camera_id else None
+    #     )
+    #     entities.append(
+    #         RTKeySwitchEntity(
+    #             hass, config_entry, cameras_api, intercom_info, camera_info
+    #         )
+    #     )
     async_add_entities(entities)
 
 
