@@ -197,27 +197,34 @@ class RTKeyCamerasApi:
         device_name = translit(device_name, "ru", reversed=True)
         return device_name.capitalize()
 
-    async def get_intercoms_info(self) -> dict:
-        async with self.lock:
-            if self.cached_intercoms_info:
-                _LOGGER.info("Using cached intercoms info")
-                return self.cached_intercoms_info
+    # async def get_intercoms_info(self) -> dict:
+    #     async with self.lock:
+    #         if self.cached_intercoms_info:
+    #             _LOGGER.info("Using cached intercoms info")
+    #             return self.cached_intercoms_info
 
-            r = await self.hass.async_add_executor_job(
-                functools.partial(
-                    requests.get,
-                    "https://household.key.rt.ru/api/v2/app/devices/intercom",
-                    headers={"Authorization": f"Bearer {self.token}"},
-                    allow_redirects=True,
-                )
-            )
-            _LOGGER.info(r)
-            _LOGGER.info(r.content)
+    #         r = await self.hass.async_add_executor_job(
+    #             functools.partial(
+    #                 requests.get,
+    #                 "https://household.key.rt.ru/api/v2/app/devices/intercom",
+    #                 headers={"Authorization": f"Bearer {self.token}"},
+    #                 allow_redirects=True,
+    #             )
+    #         )
+    #         _LOGGER.info(r)
+    #         _LOGGER.info(r.content)
 
-            self.cached_intercoms_info = json.loads(r.content)
-            self.cached_intercoms_info_timestamp = int(time.time())
+    #         self.cached_intercoms_info = json.loads(r.content)
+    #         self.cached_intercoms_info_timestamp = int(time.time())
 
-            return self.cached_intercoms_info
+    #         return self.cached_intercoms_info
+        
+    async def get_intercoms_info(self, camera_id: str) -> dict | None:
+        intercoms_info = await self.get_intercoms_info()
+        for intercom_info in intercoms_info["data"]["items"]:
+            if intercom_info["id"] == camera_id:
+                return intercom_info
+        return None
 
     async def open_intercom(self, intercom_id) -> None:
         async with self.lock:
